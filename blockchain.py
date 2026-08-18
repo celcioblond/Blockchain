@@ -1,5 +1,7 @@
 #Initializing our blockchain list
 blockchain = []
+open_transactions = []
+owner = "Celcio"
 
 def get_last_blockchain_value():
   """Returns the last value of the blockchain"""
@@ -8,17 +10,22 @@ def get_last_blockchain_value():
   return blockchain[-1]
 
 
-def add_value(transaction_amount, last_transaction=[1]):
+def add_transaction(recipient, sender= owner, amount=1):
   """Append a new value and the last transaction to the blockchain"""
-  if last_transaction == None:
-    last_transaction = [1]
-  blockchain.append([last_transaction, transaction_amount])
+  transaction = {"sender": sender, "recipient": recipient, "value": amount}
+  open_transactions.append(transaction)
+  
+
+def mine_block():
+  """Add new block to blockchain"""
+  pass
 
 
 def get_transaction_value():
   """Gets the transaction amount from the user and returns it"""
-  user_input = float(input("Your transaction amount please: "))
-  return user_input
+  tx_sender = input("Enter the recipient of the transaction: ")
+  tx_amount = float(input("Your transaction amount please: "))
+  return (tx_sender, tx_amount)
 
 
 def get_user_choice():
@@ -38,14 +45,12 @@ def verify_chain():
     for block_index in range(len(blockchain)):
       if block_index == 0:
         continue
+      #Check the previous block vs the first element
       elif blockchain[block_index][0] == blockchain[block_index-1]:
         is_valid = True
       else:
         is_valid = False 
-
-#Gets first transaction
-tx_amount = get_transaction_value()
-add_value(tx_amount)
+    return is_valid
 
 waiting_for_input = True
 
@@ -57,11 +62,14 @@ while waiting_for_input:
   print("e: Exit")
   user_choice = get_user_choice()
   if user_choice == "1":
-    tx_amount = get_transaction_value()
-    add_value(tx_amount, get_last_blockchain_value())
+    tx_data = get_transaction_value()
+    recipient, amount = tx_data
+    #Add transaction to the blockchain
+    add_transaction(recipient, amount=amount)
+    print(open_transactions)
   elif user_choice == "2":
     print_blockchain_elements()
-  elif user_choice == "e":
+  elif user_choice == "h":
     if len(blockchain) >= 1:
       blockchain[0] = [2]
   elif user_choice == "e":
