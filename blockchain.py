@@ -51,7 +51,9 @@ def verify_chain():
 tx_amount = get_transaction_value()
 add_value(tx_amount)
 
-while True:
+waiting_for_input = True
+
+while waiting_for_input:
   print('Please select an option: ')
   print("1: Add a new transaction value")
   print("2: Output the blockchains blocks")
@@ -67,7 +69,7 @@ while True:
     if len(blockchain) >= 1:
       blockchain[0] = [2]
   elif user_choice == "e":
-    break
+    waiting_for_input = False
   else:
     print("Invalid input")
   if not verify_chain():
