@@ -1,5 +1,6 @@
 import hashlib
 import json
+import pickle
 from collections import OrderedDict
 from functools import reduce
 
@@ -22,6 +23,8 @@ participants = {'Celcio'}
 
 def load_data():
     with open('blockchain.txt', mode='r') as f:
+        # file_content = pickle.load(f.read())
+
         file_content = f.readlines()
         global blockchain
         global open_transactions
@@ -47,14 +50,19 @@ def load_data():
             updated_transactions.append(updated_transaction)
         open_transactions = updated_transactions
 
-# load_data()
+load_data()
 
 
 def save_data():
     with open('blockchain.txt', mode='w') as f:
         f.write(json.dumps(blockchain))
         f.write('\n')
-        f.write(json.dumps(open_transactions)) 
+        f.write(json.dumps(open_transactions))
+        # saved_data = {
+        #     'chain': blockchain,
+        #     'ot': open_transactions
+        # } 
+        # f.write(pickle.dumps(saved_data))
 
 
 def get_balance(participant):
