@@ -143,7 +143,7 @@ class Blockchain:
             return None
         return self.__chain[-1]
 
-    def add_transaction(self, recipient, sender, amount=1):
+    def add_transaction(self, recipient, sender, signature, amount=1):
         """Append a new value and the last transaction to the blockchain"""
         # transaction = {"sender": sender, "recipient": recipient, "amount": amount}
         if self.hosting_node == None:
