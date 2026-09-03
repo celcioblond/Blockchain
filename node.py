@@ -9,7 +9,8 @@ class Node:
 
     def __init__(self):
         self.wallet = Wallet()
-        self.blockchain = None
+        self.wallet.create_keys()
+        self.blockchain = Blockchain(self.wallet.public_key)
 
     def get_transaction_value(self):
         """Gets the transaction amount from the user and returns it"""
@@ -38,6 +39,7 @@ class Node:
             print("4: Check transaction validity")
             print("5: Create Wallet")
             print("6: Load wallet")
+            print("7: Save keys")
             print("e: Exit")
 
             user_choice = self.get_user_choice()
@@ -73,7 +75,10 @@ class Node:
                 self.wallet.create_keys()
                 self.blockchain = Blockchain(self.wallet.public_key)
             elif user_choice == "6":
-                pass
+                self.wallet.load_keys()
+                self.blockchain = Blockchain(self.wallet.public_key)
+            elif user_choice == "7":
+                self.wallet.save_keys()
             elif user_choice == "e":
                 waiting_for_input = False
 
