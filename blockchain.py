@@ -126,7 +126,7 @@ class Blockchain:
         )
         tx_recipient = [
             [tx.amount for tx in block.transactions if tx.recipient == participant]
-            for block in self.blockchain
+            for block in self.__chain
         ]
         amount_received = reduce(
             lambda tx_sum, tx_amt: (
@@ -146,6 +146,8 @@ class Blockchain:
     def add_transaction(self, recipient, sender, amount=1):
         """Append a new value and the last transaction to the blockchain"""
         # transaction = {"sender": sender, "recipient": recipient, "amount": amount}
+        if self.hosting_node == None:
+            return False
         transaction = Transaction(sender, recipient, amount)
         if Verification.verify_transaction(transaction, self.get_balance):
             self.__open_transactions.append(transaction)
@@ -155,6 +157,8 @@ class Blockchain:
 
     def mine_block(self):
         """Add new block to blockchain"""
+        if self.hosting_node == None:
+            return False
         last_block = self.__chain[-1]
         hashed_block = hash_block(last_block)
         proof = self.proof_of_work()
