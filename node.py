@@ -1,7 +1,14 @@
+from uuid import uuid4
+
+from blockchain import Blockchain
+from verification import Verification
+
+
 class Node:
 
     def __init__(self):
-        self.blockchain = []
+        self.id = str(uuid4())
+        self.blockchain = Blockchain(self.id)
 
     def get_transaction_value(self):
         """Gets the transaction amount from the user and returns it"""
@@ -15,7 +22,7 @@ class Node:
 
     def print_blockchain_elements(self):
         # Output the blockchain list
-        for block in self.blockchain:
+        for block in self.blockchain.chain:
             print("Outputing block")
             print(block)
 
@@ -37,25 +44,22 @@ class Node:
                 recipient, amount = tx_data
 
                 # Add transaction to the blockchain
-                if add_transaction(recipient, amount=amount):
+                if self.blockchain.add_transaction(recipient, self.id, amount=amount):
                     print("Added transaction")
                 else:
                     print("Transaction failed")
 
-                print(open_transactions)
+                print(self.blockchain.open_transactions)
 
             elif user_choice == "2":
-                if mine_block():
-                    open_transactions = []
-                    save_data()
-
+                self.blockchain.mine_block()
+                print("Block mined successfully")
             elif user_choice == "3":
                 self.print_blockchain_elements()
-
             elif user_choice == "4":
-                verifier = Verification()
-
-                if verifier.verify_transactions(open_transactions, get_balance):
+                if Verification.verify_transactions(
+                    self.blockchain.open_transactions, self.blockchain.get_balance
+                ):
                     print("All transactions are valid")
                 else:
                     print("There are invalid transactions")
@@ -66,13 +70,17 @@ class Node:
             else:
                 print("Invalid input")
 
-            verifier = Verification()
-
-            if not verifier.verify_chain(blockchain):
+            if not Verification.verify_chain(self.blockchain.chain):
                 self.print_blockchain_elements()
                 print("Invalid blockchain")
                 break
 
-            print("Balance of {}: {:6.2f}".format("Celcio", get_balance("Celcio")))
+            print(
+                "Balance of {}: {:6.2f}".format(self.id, self.blockchain.get_balance())
+            )
 
     print("Completed")
+
+
+node = Node()
+node.listen_for_input()
