@@ -2,8 +2,9 @@
 __pycache__/
 *.pyc
 
-#Generated file
+#Generated files
 blockchain.txt
+wallet.txt
 
 #Virtual environment
 venv/
