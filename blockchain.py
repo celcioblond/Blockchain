@@ -55,7 +55,7 @@ class Blockchain:
 
                     updated_blockchain.append(updated_block)
 
-                self.blockchain = updated_blockchain
+                self.__chain = updated_blockchain
 
                 open_transactions = json.loads(file_content[1])
 
