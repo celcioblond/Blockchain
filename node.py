@@ -64,7 +64,8 @@ class Node:
             elif user_choice == "2":
                 if not self.blockchain.mine_block():
                     print("Mining failed. Got no wallet")
-                print("Block mined successfully")
+                else:
+                    print("Block mined successfully")
             elif user_choice == "3":
                 self.print_blockchain_elements()
             elif user_choice == "4":
@@ -99,7 +100,7 @@ class Node:
                 )
             )
 
-    print("Completed")
+        print("Completed")
 
 
 if __name__ == "__main__":
