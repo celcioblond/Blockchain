@@ -22,12 +22,13 @@ app.add_middleware(
 def create_keys():
     wallet.create_keys()
     if wallet.save_keys():
+        global blockchain
+        blockchain = Blockchain(wallet.public_key)
         response = {
             "public_key": wallet.public_key,
             "private_key": wallet.private_key,
+            "funds": blockchain.get_balance(),
         }
-        global blockchain
-        blockchain = Blockchain(wallet.public_key)
         return JSONResponse(content=response, status_code=201)
     else:
         response = {"message": "Saving the key failed"}
@@ -50,9 +51,27 @@ def load_keys():
         content={
             "public_key": wallet.public_key,
             "private_key": wallet.private_key,
+            "funds": blockchain.get_balance(),
         },
         status_code=201,
     )
+
+
+@app.get("/balance")
+async def get_balance():
+    balance = blockchain.get_balance()
+    if balance != None:
+        response = {
+            "message": "Fetched balance succesfully",
+            "balance": balance,
+        }
+        return JSONResponse(content=response, status_code=200)
+    else:
+        response = {
+            "message": "Loading balance failed",
+            "wallet_set_up": wallet.public_key != None,
+        }
+        return JSONResponse(content=response, status_code=500)
 
 
 @app.post("/mine")
@@ -61,7 +80,11 @@ async def mine():
     if block != None:
         dict_block = block.__dict__.copy()
         dict_block["transactions"] = [tx.__dict__ for tx in dict_block["transactions"]]
-        response = {"message": "Block added successfully", "block": dict_block}
+        response = {
+            "message": "Block added successfully",
+            "block": dict_block,
+            "funds": blockchain.get_balance(),
+        }
         return JSONResponse(content=response, status_code=201)
     else:
         response = {
