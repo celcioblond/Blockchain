@@ -18,6 +18,43 @@ app.add_middleware(
 )
 
 
+@app.post("/wallet")
+def create_keys():
+    wallet.create_keys()
+    if wallet.save_keys():
+        response = {
+            "public_key": wallet.public_key,
+            "private_key": wallet.private_key,
+        }
+        global blockchain
+        blockchain = Blockchain(wallet.public_key)
+        return JSONResponse(content=response, status_code=201)
+    else:
+        response = {"message": "Saving the key failed"}
+        return JSONResponse(content=response, status_code=500)
+
+
+@app.get("/wallet")
+def load_keys():
+    global blockchain
+
+    if not wallet.load_keys():
+        return JSONResponse(
+            content={"message": "Loading the keys failed"},
+            status_code=500,
+        )
+
+    blockchain = Blockchain(wallet.public_key)
+
+    return JSONResponse(
+        content={
+            "public_key": wallet.public_key,
+            "private_key": wallet.private_key,
+        },
+        status_code=201,
+    )
+
+
 @app.post("/mine")
 async def mine():
     block = blockchain.mine_block()
