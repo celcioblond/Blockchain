@@ -18,6 +18,22 @@ app.add_middleware(
 )
 
 
+@app.post("/mine")
+async def mine():
+    block = blockchain.mine_block()
+    if block != None:
+        dict_block = block.__dict__.copy()
+        dict_block["transactions"] = [tx.__dict__ for tx in dict_block["transactions"]]
+        response = {"message": "Block added successfully", "block": dict_block}
+        return JSONResponse(content=response, status_code=201)
+    else:
+        response = {
+            "message": "Adding a blocked failed",
+            "wallet_set_up": wallet.public_key != None,
+        }
+        return JSONResponse(content=response, status_code=200)
+
+
 @app.get("/chain")
 async def get_chain():
     chain_snapshot = blockchain.get_chain()
