@@ -8,3 +8,6 @@ wallet.txt
 
 #Virtual environment
 venv/
+
+#Editor
+.vscode/
