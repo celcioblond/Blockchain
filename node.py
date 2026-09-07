@@ -1,13 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from blockchain import Blockchain
+from transaction import Transaction
 from wallet import Wallet
 
 app = FastAPI()
 wallet = Wallet()
 blockchain = Blockchain(wallet.public_key)
+
+
+class TransactionRequest(BaseModel):
+    recipient: str = Field(min_length=3)
+    amount: float = Field(gt=0)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -72,6 +80,11 @@ async def get_balance():
             "wallet_set_up": wallet.public_key != None,
         }
         return JSONResponse(content=response, status_code=500)
+
+
+@app.post("/transaction")
+async def add_transaction(transaction: TransactionRequest):
+    new_transaction = Transaction(**transaction.model_dump())
 
 
 @app.post("/mine")
