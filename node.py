@@ -1,10 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from blockchain import Blockchain
-from transaction import Transaction
 from wallet import Wallet
 
 app = FastAPI()
@@ -27,7 +26,7 @@ app.add_middleware(
 
 
 @app.post("/wallet")
-def create_keys():
+async def create_keys():
     wallet.create_keys()
     if wallet.save_keys():
         global blockchain
@@ -39,19 +38,15 @@ def create_keys():
         }
         return JSONResponse(content=response, status_code=201)
     else:
-        response = {"message": "Saving the key failed"}
-        return JSONResponse(content=response, status_code=500)
+        raise HTTPException(status_code=404, detail="Saving the key failed")
 
 
 @app.get("/wallet")
-def load_keys():
+async def load_keys():
     global blockchain
 
     if not wallet.load_keys():
-        return JSONResponse(
-            content={"message": "Loading the keys failed"},
-            status_code=500,
-        )
+        raise HTTPException(status_code=500, detail="Loading the keys failed")
 
     blockchain = Blockchain(wallet.public_key)
 
@@ -75,16 +70,40 @@ async def get_balance():
         }
         return JSONResponse(content=response, status_code=200)
     else:
-        response = {
-            "message": "Loading balance failed",
-            "wallet_set_up": wallet.public_key != None,
-        }
-        return JSONResponse(content=response, status_code=500)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "Loading balance failed",
+                "wallet_set_up": wallet.public_key != None,
+            },
+        )
 
 
 @app.post("/transaction")
 async def add_transaction(transaction: TransactionRequest):
-    new_transaction = Transaction(**transaction.model_dump())
+    if wallet.public_key is None:
+        raise HTTPException(status_code=400, detail="No wallet set up")
+
+    signature = wallet.sign_transaction(
+        wallet.public_key, transaction.recipient, transaction.amount
+    )
+    success = blockchain.add_transaction(
+        transaction.recipient, wallet.public_key, signature, transaction.amount
+    )
+
+    if not success:
+        raise HTTPException(status_code=400, detail="Creating the transaction failed")
+
+    response = {
+        "message": "Transaction added successfully",
+        "transaction": {
+            "sender": wallet.public_key,
+            "recipient": transaction.recipient,
+            "amount": transaction.amount,
+        },
+        "funds": blockchain.get_balance(),
+    }
+    return JSONResponse(content=response, status_code=201)
 
 
 @app.post("/mine")
@@ -100,11 +119,7 @@ async def mine():
         }
         return JSONResponse(content=response, status_code=201)
     else:
-        response = {
-            "message": "Adding a blocked failed",
-            "wallet_set_up": wallet.public_key != None,
-        }
-        return JSONResponse(content=response, status_code=200)
+        raise HTTPException(status_code=400, detail="Adding a block failed")
 
 
 @app.get("/chain")
@@ -115,6 +130,6 @@ async def get_chain():
         dict_block["transactions"] = [tx.__dict__ for tx in dict_block["transactions"]]
 
     if not dict_chain:
-        return JSONResponse(content={"error": "Empty chain"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Empty chain")
 
     return JSONResponse(content=dict_chain, status_code=200)
