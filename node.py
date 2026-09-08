@@ -1,19 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
 
 from blockchain import Blockchain
+from models.transaction_request import TransactionRequest
 from wallet import Wallet
 
 app = FastAPI()
 wallet = Wallet()
 blockchain = Blockchain(wallet.public_key)
-
-
-class TransactionRequest(BaseModel):
-    recipient: str = Field(min_length=3)
-    amount: float = Field(gt=0)
 
 
 app.add_middleware(
@@ -120,6 +115,13 @@ async def mine():
         return JSONResponse(content=response, status_code=201)
     else:
         raise HTTPException(status_code=400, detail="Adding a block failed")
+
+
+@app.get("/transaction")
+async def get_transaction():
+    transactions = blockchain.get_open_transactions()
+    dict_transactions = [tx.__dict__ for tx in transactions]
+    return JSONResponse(content=dict_transactions, status_code=200)
 
 
 @app.get("/chain")
