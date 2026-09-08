@@ -1,7 +1,7 @@
 """Provides verification helper methods."""
 
+from models.wallet import Wallet
 from utility.hash_util import hash_block, hash_string_256
-from wallet import Wallet
 
 
 class Verification:
