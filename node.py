@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from blockchain import Blockchain
-from models.transaction_request import TransactionRequest
+from schemas.transaction_request import TransactionRequest
 from wallet import Wallet
 
 app = FastAPI()
