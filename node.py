@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette import status
 
 from blockchain import Blockchain
 from schemas.transaction_request import TransactionRequest
@@ -20,7 +21,7 @@ app.add_middleware(
 )
 
 
-@app.post("/wallet")
+@app.post("/wallet", status_code=status.HTTP_201_CREATED)
 async def create_keys():
     wallet.create_keys()
     if wallet.save_keys():
@@ -31,17 +32,22 @@ async def create_keys():
             "private_key": wallet.private_key,
             "funds": blockchain.get_balance(),
         }
-        return JSONResponse(content=response, status_code=201)
+        return JSONResponse(content=response, status_code=status.HTTP_201_CREATED)
     else:
-        raise HTTPException(status_code=404, detail="Saving the key failed")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Saving the key failed"
+        )
 
 
-@app.get("/wallet")
+@app.get("/wallet", status_code=status.HTTP_200_OK)
 async def load_keys():
     global blockchain
 
     if not wallet.load_keys():
-        raise HTTPException(status_code=500, detail="Loading the keys failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Loading the keys failed",
+        )
 
     blockchain = Blockchain(wallet.public_key)
 
@@ -51,11 +57,11 @@ async def load_keys():
             "private_key": wallet.private_key,
             "funds": blockchain.get_balance(),
         },
-        status_code=201,
+        status_code=status.HTTP_200_OK,
     )
 
 
-@app.get("/balance")
+@app.get("/balance", status_code=status.HTTP_200_OK)
 async def get_balance():
     balance = blockchain.get_balance()
     if balance != None:
@@ -63,10 +69,10 @@ async def get_balance():
             "message": "Fetched balance succesfully",
             "balance": balance,
         }
-        return JSONResponse(content=response, status_code=200)
+        return JSONResponse(content=response, status_code=status.HTTP_200_OK)
     else:
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "message": "Loading balance failed",
                 "wallet_set_up": wallet.public_key != None,
@@ -74,10 +80,12 @@ async def get_balance():
         )
 
 
-@app.post("/transaction")
+@app.post("/transaction", status_code=status.HTTP_201_CREATED)
 async def add_transaction(transaction: TransactionRequest):
     if wallet.public_key is None:
-        raise HTTPException(status_code=400, detail="No wallet set up")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No wallet set up"
+        )
 
     signature = wallet.sign_transaction(
         wallet.public_key, transaction.recipient, transaction.amount
@@ -87,7 +95,10 @@ async def add_transaction(transaction: TransactionRequest):
     )
 
     if not success:
-        raise HTTPException(status_code=400, detail="Creating the transaction failed")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Creating the transaction failed",
+        )
 
     response = {
         "message": "Transaction added successfully",
@@ -98,10 +109,10 @@ async def add_transaction(transaction: TransactionRequest):
         },
         "funds": blockchain.get_balance(),
     }
-    return JSONResponse(content=response, status_code=201)
+    return JSONResponse(content=response, status_code=status.HTTP_201_CREATED)
 
 
-@app.post("/mine")
+@app.post("/mine", status_code=status.HTTP_201_CREATED)
 async def mine():
     block = blockchain.mine_block()
     if block != None:
@@ -112,19 +123,21 @@ async def mine():
             "block": dict_block,
             "funds": blockchain.get_balance(),
         }
-        return JSONResponse(content=response, status_code=201)
+        return JSONResponse(content=response, status_code=status.HTTP_201_CREATED)
     else:
-        raise HTTPException(status_code=400, detail="Adding a block failed")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Adding a block failed"
+        )
 
 
-@app.get("/transaction")
+@app.get("/transaction", status_code=status.HTTP_200_OK)
 async def get_transaction():
     transactions = blockchain.get_open_transactions()
     dict_transactions = [tx.__dict__ for tx in transactions]
-    return JSONResponse(content=dict_transactions, status_code=200)
+    return JSONResponse(content=dict_transactions, status_code=status.HTTP_200_OK)
 
 
-@app.get("/chain")
+@app.get("/chain", status_code=status.HTTP_200_OK)
 async def get_chain():
     chain_snapshot = blockchain.get_chain()
     dict_chain = [block.__dict__.copy() for block in chain_snapshot]
@@ -132,6 +145,8 @@ async def get_chain():
         dict_block["transactions"] = [tx.__dict__ for tx in dict_block["transactions"]]
 
     if not dict_chain:
-        raise HTTPException(status_code=404, detail="Empty chain")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Empty chain"
+        )
 
-    return JSONResponse(content=dict_chain, status_code=200)
+    return JSONResponse(content=dict_chain, status_code=status.HTTP_200_OK)
