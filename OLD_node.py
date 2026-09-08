@@ -1,8 +1,8 @@
 from uuid import uuid4
 
-from blockchain import Blockchain
+from models.blockchain import Blockchain
+from models.wallet import Wallet
 from utility.verification import Verification
-from wallet import Wallet
 
 
 class Node:
