@@ -24,7 +24,8 @@ async def add_node(node: NodeRequest):
 @router.get("/node", status_code=status.HTTP_200_OK)
 async def get_nodes():
     nodes = state.blockchain.get_peer_nodes()
-    return JSONResponse(content=nodes, status_code=status.HTTP_200_OK)
+    response = {"all_nodes": nodes}
+    return JSONResponse(content=response, status_code=status.HTTP_200_OK)
 
 
 @router.delete("/node/{node_url}", status_code=status.HTTP_200_OK)
