@@ -12,7 +12,7 @@ async def add_node(node: NodeRequest):
     if not node:
         raise HTTPException(status_code=400, detail="No data attached")
 
-    state.blockchain.add_peer_note(node.node)
+    state.blockchain.add_peer_node(node.node)
 
     response = {
         "message": "Node added successfully",
