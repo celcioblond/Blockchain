@@ -202,3 +202,7 @@ class Blockchain:
 
         self.__peer_nodes.discard(node)
         self.save_data()
+
+    def get_peer_nodes(self):
+        """Return list of connected nodes"""
+        return list(self.__peer_nodes)
