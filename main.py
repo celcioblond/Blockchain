@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import CORS_ORIGINS
-from routers import chain, mine, transactions, wallet
+from routers import chain, mine, node, transactions, wallet
 
 app = FastAPI()
 
@@ -18,3 +18,4 @@ app.include_router(wallet.router)
 app.include_router(transactions.router)
 app.include_router(mine.router)
 app.include_router(chain.router)
+app.include_router(node.router)
