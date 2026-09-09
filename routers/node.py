@@ -25,3 +25,12 @@ async def add_node(node: NodeRequest):
 async def get_nodes():
     nodes = state.blockchain.get_peer_nodes()
     return JSONResponse(content=nodes, status_code=status.HTTP_200_OK)
+
+
+@router.delete("/node/{node_url}", status_code=status.HTTP_200_OK)
+async def remove_node(node_url: str):
+    if node_url == "" or node_url == None:
+        raise HTTPException(status_code=400, detail="Node not found")
+    state.blockchain.remove_peer_node(node_url)
+    message = "Node removed correctly"
+    return JSONResponse(content=message)
