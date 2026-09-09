@@ -187,7 +187,7 @@ class Blockchain:
         self.save_data()
         return block
 
-    def add_peer_note(self, node):
+    def add_peer_node(self, node):
         """Adds a new node to the peer set
 
         Args:
