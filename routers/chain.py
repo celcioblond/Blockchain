@@ -17,3 +17,14 @@ async def get_chain():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Empty chain")
 
     return JSONResponse(content=dict_chain, status_code=status.HTTP_200_OK)
+
+
+@router.post("/resolve-conflicts", status_code=status.HTTP_201_CREATED)
+def resolve_conflicts():
+    replaced = state.blockchain.resolve()
+    if replaced:
+        return JSONResponse(
+            content="Chain replaced", status_code=status.HTTP_201_CREATED
+        )
+    else:
+        return JSONResponse(content="Local chain kept", status_code=status.HTTP_200_OK)
