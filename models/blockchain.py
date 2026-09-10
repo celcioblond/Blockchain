@@ -169,7 +169,7 @@ class Blockchain:
             self.save_data()
             if not is_receiving:
                 for node in self.__peer_nodes:
-                    url = "http//{}/broadcast-transaction".format(node)
+                    url = "http://{}/broadcast-transaction".format(node)
                     try:
                         response = requests.post(
                             url,
@@ -190,7 +190,7 @@ class Blockchain:
 
     def add_block(self, block):
         transactions = [
-            Transaction(tx["sender"], tx["recipient"], tx["signature"])
+            Transaction(tx["sender"], tx["recipient"], tx["signature"], tx["amount"])
             for tx in block["transactions"]
         ]
         proof_is_valid = Verification.valid_proof(
@@ -200,7 +200,8 @@ class Blockchain:
         if not proof_is_valid or not hashes_match:
             return False
         converted_block = Block(
-            block["index"].block["previous_hash"],
+            block["index"],
+            block["previous_hash"],
             transactions,
             block["proof"],
             block["timestamp"],
@@ -216,7 +217,7 @@ class Blockchain:
                     and opentx.signature == itx["signature"]
                 ):
                     try:
-                        self.__open_transactions.remkove(opentx)
+                        self.__open_transactions.remove(opentx)
                     except ValueError:
                         print("Item was already removed")
         self.save_data()
@@ -248,7 +249,7 @@ class Blockchain:
             url = "http://{}/broadcast-block".format(node)
             converted_block = block.__dict__.copy()
             converted_block["transactions"] = [
-                tx.__dict__ for tx in block["transactions"]
+                tx.__dict__ for tx in block.transactions
             ]
             try:
                 response = requests.post(url, json={"block": converted_block})
@@ -282,7 +283,7 @@ class Blockchain:
                             for tx in block["transactions"]
                         ],
                         block["proof"],
-                        block["timestamps"],
+                        block["timestamp"],
                     )
                     for block in node_chain
                 ]
@@ -297,7 +298,7 @@ class Blockchain:
             except requests.exceptions.ConnectionError:
                 continue
         self.resolve_conflicts = False
-        self.chain = winner_chain
+        self.__chain = winner_chain
         if replace:
             self.__open_transactions = []
         self.save_data()
