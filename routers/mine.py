@@ -34,7 +34,7 @@ async def broadcast_block(request: BroadcastBlockRequest):
     last_block = state.blockchain.get_chain()[-1]
 
     if block.index == last_block.index + 1:
-        if state.blockchain.add_block(block):
+        if state.blockchain.add_block(block.model_dump()):
             response = {"message": "Block added"}
             return JSONResponse(content=response, status_code=status.HTTP_201_CREATED)
         else:
