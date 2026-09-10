@@ -5,6 +5,7 @@ __pycache__/
 #Generated files
 blockchain.txt
 wallet.txt
+data/
 
 #Virtual environment
 venv/
