@@ -31,6 +31,8 @@ async def broadcast_block(request: BroadcastBlockRequest):
     last_block = state.blockchain.get_chain()[-1]
 
     if block.index == last_block.index + 1:
-        pass
+        state.blockchain.add_block(block)
     elif block.index > last_block.index:
         pass
+    else:
+        raise HTTPException(status_code=409, detail="Invalid data")
