@@ -187,6 +187,27 @@ class Blockchain:
             return True
         return False
 
+    def add_block(self, block):
+        transactions = [
+            Transaction(tx["sender"], tx["recipient"], tx["signature"])
+            for tx in block["transaction"]
+        ]
+        proof_is_valid = Verification.valid_proof(
+            transactions, block["previous_hash"], block["proof"]
+        )
+        hashes_match = hash_block(self.get_chain()[-1]) == block["previous_hash"]
+        if not proof_is_valid or not hashes_match:
+            return False
+        converted_block = Block(
+            block["index"].block["previous_hash"],
+            transactions,
+            block["proof"],
+            block["timestamp"],
+        )
+        self.__chain.append(converted_block)
+        self.save_data()
+        return True
+
     def mine_block(self):
         """Add new block to blockchain"""
         if self.public_key == None:
