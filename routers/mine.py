@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from core import state
+from schemas.broadcast_block_request import BroadcastBlockRequest
 
 router = APIRouter()
 
@@ -22,3 +23,14 @@ async def mine():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Adding a block failed"
         )
+
+
+@router.post("/broadcast-block", status_code=status.HTTP_201_CREATED)
+async def broadcast_block(request: BroadcastBlockRequest):
+    block = request.block
+    last_block = state.blockchain.get_chain()[-1]
+
+    if block.index == last_block.index + 1:
+        pass
+    elif block.index > last_block.index:
+        pass
