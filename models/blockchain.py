@@ -272,7 +272,15 @@ class Blockchain:
                     Block(
                         block["index"],
                         block["previous_hash"],
-                        block["transactions"],
+                        [
+                            Transaction(
+                                tx["sender"],
+                                tx["recipient"],
+                                tx["signature"],
+                                tx["amount"],
+                            )
+                            for tx in block["transactions"]
+                        ],
                         block["proof"],
                         block["timestamps"],
                     )
