@@ -11,7 +11,7 @@ router = APIRouter()
 async def create_keys():
     state.wallet.create_keys()
     if state.wallet.save_keys():
-        state.blockchain = Blockchain(state.wallet.public_key)
+        state.blockchain = Blockchain(state.wallet.public_key, state.NODE_ID)
         response = {
             "public_key": state.wallet.public_key,
             "private_key": state.wallet.private_key,
@@ -32,7 +32,7 @@ async def load_keys():
             detail="Loading the keys failed",
         )
 
-    state.blockchain = Blockchain(state.wallet.public_key)
+    state.blockchain = Blockchain(state.wallet.public_key, state.NODE_ID)
 
     return JSONResponse(
         content={
