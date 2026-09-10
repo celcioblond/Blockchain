@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from core import state
+from schemas.broadcast_transaction_request import BroadcastTransactionRequest
 from schemas.transaction_request import TransactionRequest
 
 router = APIRouter()
@@ -44,3 +45,31 @@ async def get_transaction():
     transactions = state.blockchain.get_open_transactions()
     dict_transactions = [tx.__dict__ for tx in transactions]
     return JSONResponse(content=dict_transactions, status_code=status.HTTP_200_OK)
+
+
+@router.post("/broadcast-transaction", status_code=status.HTTP_201_CREATED)
+async def broadcast_transaction(transaction: BroadcastTransactionRequest):
+    success = state.blockchain.add_transaction(
+        transaction.recipient,
+        transaction.sender,
+        transaction.signature,
+        transaction.amount,
+        is_receiving=True,
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Creating the transaction failed",
+        )
+
+    response = {
+        "message": "Successfully added transaction",
+        "transaction": {
+            "sender": transaction.sender,
+            "recipient": transaction.recipient,
+            "amount": transaction.amount,
+            "signature": transaction.signature,
+        },
+    }
+    return JSONResponse(content=response, status_code=status.HTTP_201_CREATED)
