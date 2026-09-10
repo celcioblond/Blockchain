@@ -114,10 +114,13 @@ class Blockchain:
             proof += 1
         return proof
 
-    def get_balance(self):
-        if self.public_key == None:
-            return None
-        participant = self.public_key
+    def get_balance(self, sender=None):
+        if sender == None:
+            if self.public_key == None:
+                return None
+            participant = self.public_key
+        else:
+            participant = sender
         tx_sender = [
             [tx.amount for tx in block.transactions if tx.sender == participant]
             for block in self.__chain
@@ -152,7 +155,9 @@ class Blockchain:
             return None
         return self.__chain[-1]
 
-    def add_transaction(self, recipient, sender, signature, amount=1):
+    def add_transaction(
+        self, recipient, sender, signature, amount=1, is_receiving=False
+    ):
         """Append a new value and the last transaction to the blockchain"""
         # transaction = {"sender": sender, "recipient": recipient, "amount": amount}
         if self.public_key == None:
@@ -161,23 +166,24 @@ class Blockchain:
         if Verification.verify_transaction(transaction, self.get_balance):
             self.__open_transactions.append(transaction)
             self.save_data()
-            for node in self.__peer_nodes:
-                url = "http//{}/broadcast-transaction".format(node)
-                try:
-                    response = requests.post(
-                        url,
-                        json={
-                            "sender": sender,
-                            "recipient": recipient,
-                            "amount": amount,
-                            "signature": signature,
-                        },
-                    )
-                    if response.status_code == 400 or response.status_code == 500:
-                        print("Transaction declined, needs resolving")
-                        return False
-                except requests.exceptions.ConnectionError:
-                    continue
+            if not is_receiving:
+                for node in self.__peer_nodes:
+                    url = "http//{}/broadcast-transaction".format(node)
+                    try:
+                        response = requests.post(
+                            url,
+                            json={
+                                "sender": sender,
+                                "recipient": recipient,
+                                "amount": amount,
+                                "signature": signature,
+                            },
+                        )
+                        if response.status_code == 400 or response.status_code == 500:
+                            print("Transaction declined, needs resolving")
+                            return False
+                    except requests.exceptions.ConnectionError:
+                        continue
             return True
         return False
 
