@@ -164,29 +164,31 @@ class Blockchain:
         # if self.public_key == None:
         #     return False
         transaction = Transaction(sender, recipient, signature, amount)
-        if Verification.verify_transaction(transaction, self.get_balance):
-            self.__open_transactions.append(transaction)
-            self.save_data()
-            if not is_receiving:
-                for node in self.__peer_nodes:
-                    url = "http://{}/broadcast-transaction".format(node)
-                    try:
-                        response = requests.post(
-                            url,
-                            json={
-                                "sender": sender,
-                                "recipient": recipient,
-                                "amount": amount,
-                                "signature": signature,
-                            },
-                        )
-                        if response.status_code == 400 or response.status_code == 500:
-                            print("Transaction declined, needs resolving")
-                            return False
-                    except requests.exceptions.ConnectionError:
-                        continue
-            return True
-        return False
+        if not Verification.verify_transaction(transaction, self.get_balance):
+            return False
+        # Broadcast before storing, so a transaction declined by a peer is not
+        # kept in this node's open transactions.
+        if not is_receiving:
+            for node in self.__peer_nodes:
+                url = "http://{}/broadcast-transaction".format(node)
+                try:
+                    response = requests.post(
+                        url,
+                        json={
+                            "sender": sender,
+                            "recipient": recipient,
+                            "amount": amount,
+                            "signature": signature,
+                        },
+                    )
+                    if response.status_code == 400 or response.status_code == 500:
+                        print("Transaction declined, needs resolving")
+                        return False
+                except requests.exceptions.ConnectionError:
+                    continue
+        self.__open_transactions.append(transaction)
+        self.save_data()
+        return True
 
     def add_block(self, block):
         transactions = [
