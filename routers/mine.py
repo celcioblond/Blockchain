@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.post("/mine", status_code=status.HTTP_201_CREATED)
-async def mine():
+def mine():
     if state.blockchain.resolve_conflicts:
         response = {"message": "Resolve conflicts first, block not added!"}
         raise HTTPException(status_code=409, detail=response)
